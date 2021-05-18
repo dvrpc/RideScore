@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>RideScore</title>
+
+    <!-- Core CSS -->
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="css/typeahead.js-bootstrap.css" rel="stylesheet" type="text/css">
+    <!--https://github.com/jharding/typeahead.js-bootstrap.css-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/label.css" />
+    <!-- Custom styles for this template -->
+    <style>
+        html, body,#map, #sidebar,#container {
+            height: 100%;
+            margin: 0px;
+        }
+        body {
+            padding-top: 53px;
+        }
+        label {
+            font-weight: normal;
+        }
+        #sidebar {
+            background-color: rgb(68, 68, 68);
+            border-right: 1px solid #ccc;
+        }
+        .panel-primary {
+            border-color: grey;
+            background-color: rgb(243, 243, 243);
+            height:805px;
+        }
+        .panel-heading a:hover {
+            text-decoration: none;
+        }
+        #loading {
+            position: absolute;
+            width: 220px;
+            height: 19px;
+            top: 50%;
+            left: 50%;
+            margin: -10px 0 0 -110px;
+            z-index: 20001;
+        }
+        .navbar .navbar-brand {
+            font-weight: bold;
+            font-size: 22px;
+            color: white;
+            white-space: nowrap;
+        }
+        .navbar-inverse {
+            background-color: rgb(95, 90, 89);
+        }
+        .tt-dropdown-menu {
+            overflow: auto;
+        }
+        .tt-hint,
+        .tt-query {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .typeahead-header {
+            margin: 0 5px 5px 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid #ccc;
+        }
+		   .twitter-typeahead {
+                display:block !important;
+            }
+        .search-container {
+            width: 250px;
+        }
+        #searchbox {
+            -webkit-border-top-left-radius: 4px;
+            -webkit-border-bottom-left-radius: 4px;
+            -moz-border-top-left-radius: 4px;
+            -moz-border-bottom-left-radius: 4px;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+        .leaflet-popup-content {
+            margin-top: 14px;
+            margin-bottom: 0px;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+        @media (max-width: 992px) {
+            .navbar .navbar-brand {
+                font-size: 18px;
+                float: left;
+            }
+            .search-container {
+                width: 150px;
+            }
+            .leaflet-control-attribution {
+                display: none;
+            }
+        }
+        @media (max-width: 768px) {
+            .search-container {
+                width: 100%;
+            }
+        }
+        /* Print Handling */
+        @media print {
+            .navbar,
+            .toggle,
+            #sidebar {
+                display: none !important;
+            }
+        }
+        .navbar-inverse .navbar-nav > li > a {
+            color: rgb(200, 200, 200);
+        }
+        .panel-primary >.panel-heading {
+            background-color: rgb(243, 243, 243);
+            color: black;
+        }
+        .tooltip {
+            position: absolute;
+            background: rgba(200, 200, 200, 0.95);
+            border: 1px solid #ddd;
+            padding: 5px 12px; 
+            border-radius: 5px;
+            box-shadow: 2px 2px 2px rgba(120, 120, 120, 0.55);
+            text-shadow: 0 1px 0 #eee;
+        }
+        .ttL {
+            position: absolute;
+            background: rgba(68, 68, 68, 1);
+            border: 1px solid #ddd;
+            padding: 5px 12px; 
+            border-radius: 5px;
+            color: white;
+            box-shadow: 2px 2px 2px rgba(120, 120, 120, 0.55);
+            /*  text-shadow: 0 1px 0 #eee; */
+        }
+        path.place {
+         fill: #000;
+            fill-opacity: 1; 
+            /*  stroke: #0074ad; */
+            stroke: #bababa;
+            stroke-width: .6px;
+            cursor: pointer;
+        }
+        path.place:hover {
+			stroke: white;
+            stroke-width: 2px;
+        }
+        .name {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            fill: rgb(65, 65, 65);
+            font-weight: bold;
+            text-shadow: 0px 1px 0px rgb(255, 255, 255);
+        }
+        h3 {
+            font-size: 16px;
+            /* border-bottom: 1px solid #ccc; */
+            font-weight: bold;
+            margin: 0 0 10px;
+            padding: 5px 0;
+            color: #333;
+        }
+        .sname {
+            font-size: 16px;
+            /* border-bottom: 1px solid #ccc; */
+            font-weight: bold;
+            margin: 0 0 10px;
+            padding: 5px 0;
+            color: #333;
+        }
+        #chart {
+            padding-top: 25px;
+         /*   margin-top: 15px; */
+         /*   border: 1px solid rgb(68, 68, 68); */
+            -webkit-border-top-left-radius: 4px;
+            -webkit-border-bottom-left-radius: 4px;
+            -moz-border-top-left-radius: 4px;
+            -moz-border-bottom-left-radius: 4px;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            -webkit-border-top-right-radius: 4px;
+            -webkit-border-bottom-right-radius: 4px;
+            -moz-border-top-right-radius: 4px;
+            -moz-border-bottom-right-radius: 4px;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+    #rawdata {
+            padding-top: 25px;
+          /*  border: 1px solid rgb(68, 68, 68); */
+            -webkit-border-top-left-radius: 4px;
+            -webkit-border-bottom-left-radius: 4px;
+            -moz-border-top-left-radius: 4px;
+            -moz-border-bottom-left-radius: 4px;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            -webkit-border-top-right-radius: 4px;
+            -webkit-border-bottom-right-radius: 4px;
+            -moz-border-top-right-radius: 4px;
+            -moz-border-bottom-right-radius: 4px;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        text.catTitle {
+            padding-top: 25px;
+            margin-top: 15px;
+            stroke: white;
+            stroke-width: 1px;
+            opacity: 0.9;
+        }
+		
+        #legendBox {
+            position: absolute;
+            bottom: 33px;
+            left: 5px;
+            z-index: 1001;
+            padding: 8px;
+            background: rgba(220, 220, 220, 0.95);
+        }
+        .rsNote {
+            color: rgb(90, 90, 90);
+            margin-left: 10px;
+        }
+        .nav-left {
+            border-bottom: 1px solid transparent;
+            border-right: 1px solid #ddd;
+        }
+        .nav-left>li>a {
+            border-radius: 4px 0 0 4px;
+            margin-right: -1px;
+            color: #666;
+        }
+        .nav-left>li>a:hover {
+            border-color: #eee #ddd #eee #eee;
+        }
+        .nav-left>li.active>a,
+        .nav-left>li.active>a:hover,
+        .nav-left>li.active>a:focus {
+            border: 1px solid #ddd;
+            border-right-color: transparent;
+        }
+        #LegendModal .modal-header {
+            -webkit-transition: background .5s;
+            -moz-transition: background .5s;
+            transition: background .5s;
+            color: white;
+            background-color: #3C3C3C;
+        }
+.rawdataimg{
+    margin-left: 10px;
+width:40px;
+height:40px;
+}
+.routeimage, .rawdataimg {
+    cursor: pointer;
+}
+.rdname{
+font-weight:bold;
+margin-left:2px;
+font-size:small;
+}
+ .tt-suggestion:hover {
+ color:#FFF;
+          background-repeat: repeat-x;
+background-color: #0081C2;
+background-image: linear-gradient(to bottom, #08C, #0077B3);
+                cursor: pointer;
+            }
+.close {
+    color: #FFF;
+    text-shadow: 0px 1px 0px #FFF;
+    opacity: 0.8;
+}
+
+.modal-footer {
+    padding: 10px 2px 2px;
+}
+    </style>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.2.0/respond.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+    <!--    <div class="navbar navbar-inverse navbar-fixed-top"> -->
+    <div class="navbar navbar navbar-fixed-top" style="background-color:rgb(243,243,243);">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <span>
+                <a href="//www.dvrpc.org" target="_new">
+                    <img class="dvrpclogo" style="margin:0px 0px 0px 10px" src="img/dvrpclogo.png" />
+                </a>
+                <img style="margin:0px 0px 0px 0px" src="img/RS.png" />
+            </span>
+        </div>
+        <div class="navbar-collapse collapse">
+
+            <form class="navbar-form navbar-right">
+                <div class="input-group search-container">
+                    <input id="searchbox" type="text" class="form-control" placeholder="Search by Station">
+                    <span class="input-group-addon">
+                        <i class="icon-search"></i>
+                    </span>
+                </div>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="$('#aboutModal').modal('show'); return false;">
+                        <i class="icon-question-sign" style="color: rgb(66, 139, 202);"></i>&nbsp;&nbsp;About</a>
+                </li>
+                <li class="dropdown">
+                    <a id="toolsDrop" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-wrench" style="color: rgb(66, 139, 202);"></i>&nbsp;&nbsp;Tools and Data
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" onclick="map.fitBounds(DVRPC.getBounds()); return false;">
+                                <i class="icon-fullscreen"></i>&nbsp;&nbsp;Zoom To Full Extent</a>
+                        </li>
+						<li>
+                            <a data-toggle="modal" href="#" onclick="$('#LegendModal').modal('show'); return false;">
+                                <i class="icon-list-alt"></i>&nbsp;&nbsp;Category descriptions</a>
+                        </li>
+
+                        <li>
+                            <a data-toggle="modal" href="#" onclick="$('#LegendModal2').modal('show'); return false;">
+                                <i class="icon-picture"></i>&nbsp;&nbsp;Show Legend</a>
+                        </li>
+						
+						
+                        <li class="divider"></li>
+                        <li>
+                            <a href="//www.dvrpc.org/webmaps/ridescore/data/ridescore.xls">
+                                <i class="glyphicon glyphicon-download-alt"></i>&nbsp;&nbsp;Download Spreadsheet
+                                <small style="opacity:0.6">[0.38 MB xls]</small>
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <!--/.navbar-collapse -->
+    </div>
+
+    <div class="row" id="container">
+        <div class="col-sm-5 col-lg-5" id="sidebar" style="padding: 10px; overflow: auto;">
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div id='infosidebar'></div>
+                    </div>
+                    <div class="panel-body" style="padding:15px">
+
+                        <div id="score"></div>
+                        <div class="rsNote">
+                            <i>RideScore is the sum of values for each station characteristic</i>
+                        </div>
+						
+						    <ul class="nav nav-tabs" id="myTab">
+                <li class="active"><a href="#layers" data-toggle="tab"><i class="icon-align-left"></i>&nbsp;Category Scoring</a></li>
+                <li><a href="#help" data-toggle="tab"><i class="icon-list-alt"></i>&nbsp;Data</a></li>
+            </ul>
+						
+		<div class="tab-content" style="padding-top: 10px;">
+                <div class="tab-pane active" id="layers">
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="small text-muted">(click icon for category description)</span>
+							    <div id="chart"></div>
+                            </div>
+           
+                        </div>			
+                    </div>
+                </div>
+				
+                <div class="tab-pane" id="help">
+                   <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+							  <span class="small text-muted">(click icon for category description)</span>
+                                <div id="rawdata"></div>
+                            </div>
+           
+                        </div>
+              
+                    </div>
+                </div>
+            </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-7 col-lg-7" id="map">
+            <div id="loading" style="display: block;">
+                <div class="loading-indicator">
+                    <div class="progress progress-striped active">
+                        <div class="progress-bar progress-bar-info" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="legendBox" class="legend">
+        <img class="dvrpclogo" style="margin:0px 0px 0px 0px" src="img/legend.png" />
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/typeahead.bundle.min.js"></script> <!--https://github.com/twitter/typeahead.js/-->
+  <!--   <script type="text/javascript" src="js/typeahead.min.js"></script -->
+
+    <script src="https://unpkg.com/leaflet@0.7/dist/leaflet.js"></script>
+    <!--[if lte IE 8]><script src="js/r2d3.min.js" charset="utf-8"></script><![endif]-->
+    <!--[if gte IE 9]><!-->
+
+    <script src="https://d3js.org/d3.v2.min.js?2.9.3"></script>
+    <!--<![endif]-->
+    <script src="js/leaflet-providers.js"></script>
+    <script src="js/numeral.min.js"></script>
+    <script src="js/jquery.simulate.js"></script>
+
+    <script type="text/javascript">
+        var map;
+        var stationSearch = [];
+
+        $(document).ready(function() {
+          //  $('[rel=tooltip]').tooltip();
+       
+					//OPEN ABOUT DIALOG
+               $('#aboutModal').modal();
+
+            $('#legendTabs a').on('show.bs.tab', function() {
+                $(this).data('bg').length && $('#LegendModal .modal-header').css('background-color', $(this).data('bg'));
+            });
+        });
+        $(window).resize(function() {
+            $('.tt-dropdown-menu').css('max-height', $('#container').height() - $('.navbar').height() - 20);
+        });
+
+        $('input[name="basemapLayers"]').change(function() {
+            // Remove unchecked layers
+            $('input:radio[name="basemapLayers"]:not(:checked)').each(function() {
+                map.removeLayer(window[$(this).attr('id')]);
+            });
+            // Add checked layer
+            $('input:radio[name="basemapLayers"]:checked').each(function() {
+                map.addLayer(window[$(this).attr('id')]);
+            });
+        });
+
+        $('input:checkbox[name="overlayLayers"]').change(function() {
+            var layers = [];
+
+            function sortByKey(array, key) {
+                return array.sort(function(a, b) {
+                    var x = a[key];
+                    var y = b[key];
+                    return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                });
+            }
+            if ($('#' + $(this).attr('id')).is(':checked')) {
+                $('input:checkbox[name="overlayLayers"]').each(function() {
+                    // Remove all overlay layers
+                    map.removeLayer(window[$(this).attr('id')]);
+                    if ($('#' + $(this).attr('id')).is(':checked')) {
+                        // Add checked layers to array for sorting
+                        layers.push({
+                            'z-index': $(this).attr('z-index'),
+                            'layer': $(this)
+                        });
+                    }
+                });
+                // Sort layers array by z-index
+                var orderedLayers = sortByKey(layers, 'z-index');
+                // Loop through ordered layers array and add to map in correct order
+                $.each(orderedLayers, function() {
+                    map.addLayer(window[$(this)[0].layer[0].id]);
+                });
+            } else {
+                // Simply remove unchecked layers
+                map.removeLayer(window[$(this).attr('id')]);
+            }
+        });
+
+            // Basemap Layers
+        var mapquestOSM = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+});
+
+        //L.tileLayer.provider('MapBox.rferrigno.ijaipc4p');
+	 
+        var Mapbox_Imagery = L.tileLayer(
+        'https://api.mapbox.com/styles/v1/crvanpollard/cimpi6q3l00geahm71yhzxjek/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY3J2YW5wb2xsYXJkIiwiYSI6Ii00ZklVS28ifQ.Ht4KwAM3ZUjo1dT2Erskgg', {
+        tileSize: 512,
+        zoomOffset: -1,
+        attribution: '© <a href="https://www.mapbox.com/map-feedback/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+        
+         // Overlay Layers  
+        var DVRPC = L.geoJson(null, {
+            style: {
+                color: 'rgb(140,140,140)',
+                weight: 3,
+                fill: false,
+                clickable: false
+            }
+        });
+        $.getJSON("data/County_DVRPC.js", function(data) {
+            DVRPC.addData(data);
+        });
+
+        var rail = L.geoJson(null, {
+            style: {
+                color: 'rgb(200,200,200)',
+                weight: 6,
+                fill: false,
+                clickable: false
+            }
+        });
+        $.getJSON("data/dvrpc_rail.js", function(data) {
+            rail.addData(data);
+        });
+
+        var tcp = L.geoJson(null, {
+            style: {
+		          color: '#339F98',
+              //  color: '#a8ddb5',
+                weight: 3.5,
+                fill: false,
+                dashArray: '4,4',
+                clickable: false
+            }
+        });
+        $.getJSON("data/tc_progress.js", function(data) {
+            tcp.addData(data);
+        });
+		
+	 var tce = L.geoJson(null, {
+            style: {
+               color: '#339F98',
+           //  color: '#0090A6',			
+                weight: 3.5,
+                fill: false,
+            //    dashArray: '4,4',
+                clickable: false
+            }
+        });
+        $.getJSON("data/tc_existing.js", function(data) {
+            tce.addData(data);
+        });
+
+// style function 
+function style(feature) {
+return {
+"color": "grey",
+"radius": 1,
+    "weight": 0,
+    "opacity": 1,
+    "fillOpacity": 0.8
+};
+}
+
+ var rs = L.geoJson(null, {
+           pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng,style(feature));
+    },
+           onEachFeature: function(feature, layer){
+            stationSearch.push({
+                                name:layer.feature.properties.STATION,
+                               source: "rs",
+                                id: layer.feature.id,
+                              lat: layer.feature.geometry.coordinates[1],
+                               lng: layer.feature.geometry.coordinates[0]
+                               });
+                    
+            },
+        });
+
+         /// map properties      
+        map = L.map("map", {
+            zoom: 10,
+            center: new L.LatLng(39.97, -75.16),
+            layers: [mapquestOSM, DVRPC, rail, tcp,tce,rs]
+
+        });
+         // Hack to preserver layer order in Layer control
+         //     map.removeLayer(subwayLines);
+
+        var scaleControl = L.control.scale({
+            position: 'bottomright'
+        });
+
+         // Larger screens get scale control and expanded layer control
+        if (document.body.clientWidth <= 767) {
+            var isCollapsed = true;
+        } else {
+            var isCollapsed = false;
+            map.addControl(scaleControl);
+        };
+
+        var baseLayers = {
+            "Streets": mapquestOSM,
+            "Imagery": Mapbox_Imagery
+        };
+
+        var layerControl = L.control.layers(baseLayers).addTo(map);
+
+        $('#legendBox').appendTo('#map');
+
+        var color = d3.scale.threshold()
+            .domain([2, 3, 4, 5, 6, 7, 8])
+         //   .range(["blue","#EE3224", "#F26322", "#F7911E", "#FEBB12", "#FEE900", "#A3C43A", "#3F813D"]);
+			// colorbrewer
+			.range(["blue","#EE3224", "#F7911E", "#fee08b", "#FEE900","#a6d96a" ,"#1a9850", "#006837"]);
+			
+        var svg = d3.select(map.getPanes().markerPane).append("svg"),
+            g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+
+         // start toolitip
+        var tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        tooltip.append("div")
+            .attr("class", "state-title");
+         //end tooltip   
+         // start toolitip
+        var tooltipL = d3.select("body")
+            .append("div")
+            .attr("class", "tooltipL")
+            .style("opacity", 0);
+
+        tooltipL.append("div")
+            .attr("class", "state-title");
+         //end tooltip     
+
+        $.getJSON("data/rs.js", function(collection) {
+            //ADD TO LEAFLET LAYER
+            rs.addData(collection);
+            //D3 INIT
+            var bounds = d3.geo.bounds(collection),
+                path = d3.geo.path().projection(project);
+
+            var feature = g.selectAll("path")
+                .data(collection.features)
+                .enter().append("path")
+                .attr("d", path)
+                .attr("class", "place")
+                .attr("id", function(d) {
+                    return 'rs'+d.id;
+                })
+                .style("fill", function(d) {
+                    return color(d.properties.SYMBOL);
+                })
+                .on('click', redraw)
+                .on('mouseenter', function(d) {
+                    tooltip.transition()
+                        .duration(100)
+                        .style("opacity", 1)
+                        .style("display", "block")
+                        .style("left", (d3.event.pageX + 5) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+
+                    tooltip.select('.state-title')
+                        .text([d.properties.STATION+" : "+numeral(d.properties.RS_FINAL).format('0.0')]);
+                })
+                .on('mousemove', function(d) {
+                    tooltip
+                        .style("left", (d3.event.pageX + 5) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on('mouseleave', function(d) {
+                    tooltip.transition()
+                        .duration(100)
+                        .style("opacity", 0)
+                        .style("display", "none");
+                })   
+            map.on("viewreset", reset);
+            reset();
+
+
+            // Reposition the SVG to cover the features.
+            function reset() {
+                var bottomLeft = project(bounds[0]),
+                    topRight = project(bounds[1]);
+
+                var padding = 25; // In pixels, choose large enough to prevent edge clipping
+                // of your largest element    
+
+                bottomLeft = [bottomLeft[0] - padding, bottomLeft[1] + padding]
+                topRight = [topRight[0] + padding, topRight[1] - padding]
+
+                svg.attr("width", topRight[0] - bottomLeft[0])
+                    .attr("height", bottomLeft[1] - topRight[1])
+                    .style("margin-left", bottomLeft[0] + "px")
+                    .style("margin-top", topRight[1] + "px");
+
+                g.attr("transform", "translate(" + -bottomLeft[0] + "," + -topRight[1] + ")");
+
+                feature.attr("d", path);
+            }
+
+            // Use Leaflet to implement a D3 geographic projection.
+            function project(x) {
+                var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+                return [point.x, point.y];
+            }
+        });
+
+         // bardata below = where the bars start at the begining
+        var barData = [.2, .2, .2, .2, .2, .2, .2, .2, .2, .2];
+        var gap = 30;
+         //padding for the party labels
+        var left_padding = 162;
+        var w = 300,
+            h = 480;
+
+        var x = d3.scale.linear()
+            .domain([0, 6])
+            .range([0, w]);
+
+        var y = d3.scale.ordinal()
+            .domain(barData)
+         //  .rangeBands([0, (h + 2 * gap)]);
+        .rangeBands([0, h + 50]);
+
+        var chart = d3.select("#chart").append("svg")
+            .attr("class", "chart")
+            .attr("width", w + left_padding)
+            .attr("height", 480)
+            .append("g")
+            .attr("transform", "translate(20,15)");
+
+         //the lines at 20,40,60
+        chart.selectAll("line")
+            .data(x.ticks(8))
+            .enter().append("line")
+            .attr("x1", function(d) {
+                return x(d) + left_padding;
+            })
+            .attr("x2", function(d) {
+                return x(d) + left_padding;
+            })
+            .attr("y1", -3)
+            .attr("y2", 430)
+            .style("stroke", function(d, i) {
+                return i == 0 ? "#000" : "#bbb";
+            });
+
+         //the text at the top of the lines
+        chart.selectAll(".rule")
+            .data(x.ticks(5))
+            .enter().append("text")
+            .attr("class", "rule")
+            .attr("x", function(d) {
+                return x(d) + left_padding;
+            })
+            .attr("y", 0)
+            .attr("dy", -4)
+            .attr("text-anchor", "middle")
+            .attr("font-size", 10)
+            .text(String);
+         //the bars
+        chart.selectAll("rect")
+            .data(barData)
+            .enter().append("rect")
+            .attr("x", function(d, i) {
+                return left_padding;
+            })
+            .attr("y", function(d, i) {
+                return i * 45;
+            })
+            .attr("width", x)
+            .attr("height", 20)
+            .attr("fill", function(d, i) {
+                if (i == 0) return "#991f31";
+                if (i == 1) return "#60afa1";
+                if (i == 2) return "#a6c834";
+                if (i == 3) return "#006886";
+                if (i == 4) return "#3b8448";
+                if (i == 5) return "#db182e";
+                if (i == 6) return "#e38225";
+                if (i == 7) return "#e7c32a";
+                if (i == 8) return "#9ab9a8";
+                if (i == 9) return "#5d558b";
+                else return "grey";
+            });
+
+        var dataSet2 = [{
+            legendLabel: "Transit Volumes",
+            legendLabelFULL: "Transit Vehicle Volumes",
+            img: "img/tv.png",
+            info: "Transit"
+        }, {
+            legendLabel: "Connectivity Score",
+            legendLabelFULL: "Connectivity Score",
+            img: "img/cs.png",
+            info: "Connect"
+        }, {
+            legendLabel: "Cultural",
+            legendLabelFULL: "Civic and Cultural Attractors",
+            img: "img/ca.png",
+            info: "CC"
+        }, {
+            legendLabel: "Circuit Proximity",
+            legendLabelFULL: "Station Proximity to Circuit Trail Network",
+            info: "ctn",
+            img: "img/station.png"
+        }, {
+            legendLabel: "Outdoor Destinations",
+            legendLabelFULL: "Outdoor Bicycle Destinations",
+            img: "img/outdoor.png",
+            info: "OD"
+        }, {
+            legendLabel: "Retail District",
+            legendLabelFULL: "Stations Located Near a Walkable Retail District",
+            img: "img/St_RD.png",
+            info: "Walk"
+        }, {
+            legendLabel: "Near Bicycle Facility",
+            legendLabelFULL: "Stations Near On-road Bicycle Facilities",
+            img: "img/onroadbike.png",
+            info: "Bike"
+        }, {
+            legendLabel: "Population",
+            legendLabelFULL: "Population Density",
+            img: "img/popden.png",
+            info: "POP"
+        }, {
+            legendLabel: "Employees",
+            legendLabelFULL: "Employees",
+            img: "img/emp.png",
+            info: "EMP"
+        }, {
+            legendLabel: "Non-Parking Boards",
+            legendLabelFULL: "Non-Parking Passenger Boards",
+            img: "img/pass.png",
+            info: "Board"
+        }];
+
+
+        chart.selectAll("image.routeimage")
+            .data(dataSet2)
+            .enter().append("svg:a") // Append legend elements
+        .on("click", function(d, i) {
+            $('#LegendModal').one('shown.bs.modal', function() {
+                console.log($('#legendTabs a[href="#' + dataSet2[i].info + 'Tab"]'));
+                $('#legendTabs a[href="#' + dataSet2[i].info + 'Tab"]').tab('show');
+            }).modal('show');
+
+        })
+         //    .attr("xlink:href", function(d) { $('#WalkModal').modal('show'); return false; })
+        .append("svg:image")
+            .attr("width", 40)
+            .attr("height", 40)
+            .attr("x", -10)
+            .attr("y", function(d, i) {
+                return i * 45 - 10;
+            })
+         // .attr("xlink:href", "img/ridescore.png")
+        .attr("xlink:href", function(d, i) {
+            return dataSet2[i].img;
+        })
+         //	.attr("xlink:href", function(d) { return d.info; })
+        .attr("class", "routeimage")
+        .attr("title", "click for category description")
+            .on("mouseover", function(d, i) {
+                tooltipL.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltipL.html(d.legendLabelFULL)
+                    .attr("class", "ttL")
+                    .style("left", (d3.event.pageX + 5) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltipL.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+
+        chart.selectAll("text.name")
+            .data(dataSet2)
+         // .data(["Transit","Connectivity","Cultural","Proximity","Outdoor Bike"])
+        .enter().append("text")
+            .attr("x", 35)
+            .attr("y", function(d, i) {
+                return i * 45 + 10;
+            })
+            .attr("dy", ".36em")
+            .attr("text-anchor", "left")
+            .attr('class', 'name')
+            .attr("font-size", 12)
+         //  .attr("fill",'white')
+        .text(function(d, i) {
+            return dataSet2[i].legendLabel;
+        }); //get the label 
+
+// Ridescore Bar
+        var barDataS = [4];
+         // var gap = 2;
+         //padding for the party labels
+         // var left_paddingS = 90;
+        var left_paddingS = 90;
+        var wS = 360,
+            hS = 15;
+
+        var xS = d3.scale.linear()
+            .domain([0, 10])
+            .range([0, wS]);
+
+        var yS = d3.scale.ordinal()
+            .domain(barDataS)
+            .rangeBands([0, hS]);
+
+        var chartS = d3.select("#score").append("svg")
+            .attr("class", "score")
+            .attr("width", wS + left_paddingS + 100)
+            .attr("height", 50)
+            .append("g")
+            .attr("transform", "translate(20,15)");
+
+         //the lines at 20,40,60
+        chartS.selectAll("line")
+            .data(xS.ticks(10))
+            .enter().append("line")
+            .attr("x1", function(d) {
+                return xS(d) + left_paddingS;
+            })
+            .attr("x2", function(d) {
+                return xS(d) + left_paddingS;
+            })
+            .attr("y1", -3)
+            .attr("y2", 25)
+            .style("stroke", function(d, i) {
+                return i == 0 ? "#000" : "#bbb";
+            });
+
+         //the text at the top of the lines
+        chartS.selectAll(".rule")
+            .data(xS.ticks(6))
+            .enter().append("text")
+            .attr("class", "rule")
+            .attr("x", function(d) {
+                return xS(d) + left_paddingS;
+            })
+            .attr("y", 0)
+            .attr("dy", -4)
+            .attr("text-anchor", "middle")
+            .attr("font-size", 11)
+            .text(String);
+   
+         //Ridescore bar
+
+        chartS.selectAll("rect")
+            .data(barDataS)
+            .enter().append("rect")
+            .attr("x", function(d, i) {
+                return left_paddingS;
+            })
+            .attr("y", function(d, i) {
+                return i * 20;
+            })
+            .attr("width", xS)
+            .attr("height", 20)
+            .attr("fill", "grey");
+	
+        chartS.selectAll("image.routeimage")
+            .data(barDataS)
+            .enter().append("svg:a") // Append legend elements
+        .on("click", function(d, i) {
+            $('#LegendModal').one('shown.bs.modal', function() {
+                $('#legendTabs a[href="#RideScoreTab"]').tab('show');
+            }).modal('show');
+        })
+            .append("svg:image")
+            .attr("width", 45)
+            .attr("height", 40)
+            .attr("x", -25)
+            .attr("y", -12)
+            .attr("xlink:href", "img/ridescoreG.png")
+            .attr("class", "routeimage")
+            .on("mouseover", function(d, i) {
+                tooltipL.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltipL.html("RideScore")
+                    .attr("class", "ttL")
+                    .style("left", (d3.event.pageX + 5) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltipL.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+         //labels for the parties
+        chartS.selectAll("text.name")
+            .data(["RideScore"])
+            .enter().append("text")
+            .attr("x", 19)
+            .attr("y", function(d, i) {
+                return i * 20 + 10;
+            })
+            .attr("dy", ".36em")
+            .attr("text-anchor", "left")
+            .attr('class', 'name')
+            .attr("font-size", 14)
+            .attr("fill", 'white')
+            .text(String);
+			
+			
+
+function legendraw(element) {
+    $('#LegendModal').one('shown.bs.modal', function() {
+    
+               $('#legendTabs a[href="#' +element.getAttribute("value") + 'Tab"]').tab('show'); }).modal('show');
+// alert(element.getAttribute("value")); 
+}
+
+        function redraw(d, i) {
+
+            var content = '<font class="sname" style="font-weight:bold;margin-left:2px;">' + d.properties.STATION + ' Station - </font>' + d.properties.LINE + ' <img  style="" src="' + d.properties.OP + '"/><br>' + d.properties.LOC+'<br> RideScore for this station is : '+ numeral(d.properties.RS_FINAL).format('0.0');
+            document.getElementById('infosidebar').innerHTML = content;
+            
+     
+            var content2 = '<img value="Transit" title="click for category description" src="img/tv.png" class="rawdataimg" onclick="legendraw(this);"> <font class="rdname"> Transit Vehicle Volumes : </font>' + d.properties.TVVTOTAL + ' <i>vehicles within 24 hours</i> <br>' 
+            + '<img src="img/cs.png" class="rawdataimg" title="click for category description" value="Connect" onclick="legendraw(this);"> <font class="rdname"> Connectivity Score : </font>' + numeral(d.properties.CONDENSITY).format('0.00') + ' <i> intersection density within 1/2-mile of station</i><br>' 
+            + '<img src="img/ca.png" class="rawdataimg" title="click for category description" value="CC" onclick="legendraw(this);"> <font class="rdname"> Civic and Cultural Attractors : </font>' + d.properties.CCTOTAL+ ' <i>resources</i><br>' 
+            + '<img src="img/station.png" class="rawdataimg" title="click for category description" value="ctn" onclick="legendraw(this);"> <font class="rdname"> Station Proximity to Circuit Trail Network : </font>' + d.properties.CTNTEXT+ ' <br>' 
+            + '<img src="img/outdoor.png" class="rawdataimg" title="click for category description" value="OD" onclick="legendraw(this);"> <font class="rdname"> Outdoor Bicycle Destinations : </font>' + d.properties.OBDTEXT+ ' <br>'
+            + '<img src="img/St_RD.png" class="rawdataimg" title="click for category description" value="Walk" onclick="legendraw(this);"> <font class="rdname"> Retail District : </font>' + d.properties.WLKTEXT+ ' <br>' 
+            + '<img src="img/onroadbike.png" class="rawdataimg" title="click for category description" value="Bike" onclick="legendraw(this);"> <font class="rdname"> Stations Near On-road Bicycle Facilities : </font>' + d.properties.OBFLABEL+ ' <br>' 
+            + '<img src="img/popden.png" class="rawdataimg" title="click for category description" value="POP" onclick="legendraw(this);"> <font class="rdname"> Population Density: </font>' + numeral(d.properties.DENTOTAL).format('0,0')+ ' <i> persons within 1-mile of the station</i><br>'
+            + '<img src="img/emp.png" class="rawdataimg" title="click for category description" value="EMP" onclick="legendraw(this);"> <font class="rdname"> Employees: </font>' + numeral(d.properties.EMPTOTAL).format('0,0')+ ' <i>employees within 1-mile of station</i><br>' 
+            + '<img src="img/pass.png" class="rawdataimg" title="click for category description" value="Board" onclick="legendraw(this);"> <font class="rdname"> Non-Parking Passenger Boards : </font>' + numeral(d.properties.NPPTOTAL).format('0.00')+ '%<br>'
+            ;
+            document.getElementById('rawdata').innerHTML = content2;
+			
+            var barData = [d.properties.TVVSCORE, d.properties.CONSCORE, d.properties.CCSCORE, d.properties.CTNSCORE, d.properties.OBDSCORE, d.properties.WLKSCORE, d.properties.OBFSCORE, d.properties.DENSCORE, d.properties.EMPSCORE, d.properties.NPPSCORE
+            ];
+
+            // Update?
+            chart.selectAll("rect")
+                .data(barData)
+                .transition()
+                .duration(400)
+                .attr("y", function(d, i) {
+                    return i * 45;
+                })
+            //  .attr("y", function(d, i) { return i * 20; })
+            .attr("width", x);
+
+            var barDataS = [numeral(d.properties.RS_FINAL).format('0.0') ];
+ 
+            var color = d3.scale.linear()
+                .domain([2, 2.9, 3,3.9 ,4 ,4.9 ,5 ,5.9 ,6 ,6.9 ,7, 7.9 ,8, 8.9, 9])
+				.range(["#EE3224","#EE3224", "#F7911E", "#F7911E","#fee08b", "#fee08b", "#FEE900", "#FEE900", "#a6d96a", "#a6d96a", "#1a9850", "#1a9850", "#006837", "#006837", "#006837"]);
+	
+
+            chartS.selectAll("rect")
+                .data(barDataS)
+                .transition()
+                .duration(400)
+                .attr("y", function(d, i) {
+                    return i * 20;
+                })
+                .attr("width", xS)
+                .style("fill", function(d) {
+                    return color(d);
+                });
+				
+//		chartS.selectAll("text.BarValue").remove();		
+							
+//		chartS.append("text")
+ //             .data(barDataS)
+ //             .attr("class", "BarValue")
+ //             .text(function(d) {return d;})
+  //            .attr("text-anchor", "left")
+//		      .attr("x", function(d) {return xS(d) + 75;})
+ //             .attr("y", 16)
+//			  .attr("font-family", "sans-serif")
+ //             .attr("font-size", "16px")
+//			  .attr("stroke", "grey")
+//			   .attr("stroke-width", ".2px")
+ //             .attr("fill", "black");
+
+  
+          //   console.log (data.length)
+        }
+
+
+
+         // Highlight search box text on click
+        $("#searchbox").click(function() {
+            $(this).select();
+        });
+
+        // Typeahead search functionality
+$(document).one("ajaxStop", function () {
+    map.fitBounds(rs.getBounds());
+    $("#loading").hide();
+
+    var stationBH = new Bloodhound({
+        name: "rs",
+        datumTokenizer: function (d) {
+            return Bloodhound.tokenizers.whitespace(d.name);
+        },
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        local: stationSearch,
+        limit: 10
+    });
+         var geonamesBH = new Bloodhound({
+        name: "GeoNames",
+        datumTokenizer: function (d) {
+            return Bloodhound.tokenizers.whitespace(d.name);
+        },
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: "https://api.geonames.org/searchJSON?username=bootleaf&featureClass=P&maxRows=5&countryCode=US&name_startsWith=%QUERY",
+            filter: function (data) {
+                return $.map(data.geonames, function (result) {
+                    return {
+                        name: result.name + ", " + result.adminCode1,
+                        lat: result.lat,
+                        lng: result.lng,
+                        source: "GeoNames"
+                    };
+                });
+            },
+            ajax: {
+                beforeSend: function (jqXhr, settings) {
+                    settings.url += "&east=" + map.getBounds().getEast() + "&west=" + map.getBounds().getWest() + "&north=" + map.getBounds().getNorth() + "&south=" + map.getBounds().getSouth();
+                    $("#searchicon").removeClass("fa-search").addClass("fa-refresh fa-spin");
+                },
+                complete: function (jqXHR, status) {
+                    $('#searchicon').removeClass("fa-refresh fa-spin").addClass("fa-search");
+                }
+            }
+        },
+        limit: 4
+    });
+    
+     stationBH.initialize();
+   //   geonamesBH.initialize();
+    
+     // instantiate the typeahead UI
+    $("#searchbox").typeahead({
+        minLength: 2,
+        highlight: true,
+        hint: false
+    }, {
+        name: "rs",
+        displayKey: "name",
+        source: stationBH.ttAdapter(),
+        templates: {
+            header: "<h4 class='typeahead-header'>Select a station...</h4>"
+        }
+    }
+    , {
+        name: "GeoNames",
+        displayKey: "name",
+        source: geonamesBH.ttAdapter(),
+        templates: {
+            header: "<h4 class='typeahead-header'>&nbsp;GeoNames</h4>"
+        }
+    }
+    ).on("typeahead:selected", function (obj, datum) {
+        if (datum.source === "rs") {
+           // map.fitBounds(datum.bounds);
+            map.setView([datum.lat, datum.lng], 17);
+		//    $('#map img[data-original-title="'+suggestion.District+'"]').click();
+           // redraw();
+            $('#rs'+datum.id).simulate('click');
+        };
+          if (datum.source === "GeoNames") {
+            map.setView([datum.lat, datum.lng], 14);
+        };
+        if ($(".navbar-collapse").height() > 50) {
+            $(".navbar-collapse").collapse("hide");
+        };
+    }).on("typeahead:opened", function () {
+        $(".navbar-collapse.in").css("max-height", $(document).height() - $(".navbar-header").height());
+        $(".navbar-collapse.in").css("height", $(document).height() - $(".navbar-header").height());
+    }).on("typeahead:closed", function () {
+        $(".navbar-collapse.in").css("max-height", "");
+        $(".navbar-collapse.in").css("height", "");
+    });
+    $(".twitter-typeahead").css("position", "static");
+    $(".twitter-typeahead").css("display", "block");
+});
+
+
+
+         // Placeholder hack for IE
+        if (navigator.appName == "Microsoft Internet Explorer") {
+            $("input").each(function() {
+                if ($(this).val() == "" && $(this).attr("placeholder") != "") {
+                    $(this).val($(this).attr("placeholder"));
+                    $(this).focus(function() {
+                        if ($(this).val() == $(this).attr("placeholder")) $(this).val("");
+                    });
+                    $(this).blur(function() {
+                        if ($(this).val() == "") $(this).val($(this).attr("placeholder"));
+                    });
+                }
+            });
+        }
+    </script>
+
+    <!-- Start About -->
+
+    <div class="modal fade" id="aboutModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color:black">&times;</button>
+                    <span>
+
+                        <img style="margin:0px 0px 0px 0px" src="img/RS.png" />
+                    </span>
+                </div>
+                <div class="modal-body">
+				  <ul id="aboutTabs" class="nav nav-tabs">
+                        <li class="active"><a href="#about" data-toggle="tab"><i class="icon-question-sign"></i>&nbsp;About</a></li>
+					    <li><a href="#purpose" data-toggle="tab"><i class="icon-road"></i>&nbsp;Purpose</a></li>   
+                        <li><a href="#disclaimer" data-toggle="tab"><i class="icon-exclamation-sign"></i>&nbsp;Disclaimer</a></li>   
+                    </ul>
+     <div id="aboutTabsContent" class="tab-content" style="padding-top: 10px;">
+				
+				 <div class="tab-pane fade active in" id="about">
+               <!--      <h3>About</h3> -->
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RideScore is an on-line database that assesses the physical and demographic characteristics around transit stations that relate to how supportive of bicycling the area is, or could be.
+					The database focuses on commuter rail stations outside of Center City Philadelphia as well as trolley and subway terminals where having direct, safe, and nonmotorized access between transit stations and a person's origin and/or destination is a challenge. 
+					</br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To assess this relationship, DVRPC staff collected data on various station area characteristics that are likely to be factors in the transit-bicycle connection. The sum of those factors is calculated to give each station a total RideScore. 
+					Together, these individual factors, and a station's total RideScore, will give transit agencies, trail advocacy groups and municipalities a picture of the station area characteristics that contribute to demand for bicycle facilities and amenities. 
+					Ultimately, RideScore may help communities identify and prioritize improvements designed to strengthen bicycle and transit connectivity.
+                    </p>
+                    <p>
+          
+                        <br>For more information, please contact Betsy Mastaglio at
+                        <a href="mailto:bmastaglio@dvrpc.org">
+                            <i class="glyphicon glyphicon-envelope"></i> bmastaglio@dvrpc.org</a>
+                    </p>
+				</div>
+				
+					<div class="tab-pane fade" id="purpose">
+                      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RideScore seeks to draw out meaningful connections between regional transit and bicycle use throughout the entire DVRPC region where first- and last-mile issues (having direct, safe, and nonmotorized access between transit stations and a person’s origin and/or destination) are most important: commuter rail stations, trolley and subway termini outside of Center City Philadelphia. Transit and bicycle networks have a mutually beneficial relationship in that each can be used to access the other in a way that does not compromise environmental, fiscal, and safety conditions as travel by auto would. 
+							Each mode also expands the field of access of the other. </br>
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A better coordinated transit and trail network would provide the stakeholders of these assets with a potential higher return on investment by increasing visibility, attracting new users, and sharing expenditures through yet untapped partnerships and funding sources. For users, a coordinated approach would mean greater access to places not traditionally accessed before by transit or bicycle. 
+
+</p>
+							</div>
+				
+				<div class="tab-pane fade" id="disclaimer">
+				<p>
+				This web page is a public resource of general information. The Delaware Valley Regional Planning Commission (DVRPC) makes no warranty, representation, or guarantee as to the content, sequence, accuracy, timeliness, or completeness of any of the spatial data or database information provided herein. DVRPC and partner state, local, and other agencies shall assume no liability for errors, omissions, or inaccuracies in the information provided regardless of how caused; or any decision made or action taken or not taken by any person relying on any information or data furnished within. 
+				</p>			
+                 </div>
+                   
+					  <div class="modal-footer" >
+		<!-- 	<div style="text-align:left">
+					<h3 >Getting Started</h3>
+                    <p  >Click Continue to browse a map of the Delaware Valley region.Click on a station name to view detailed information. </p>
+					</div> -->
+                        <div class="pull-left">		
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Explore RideScore</button>
+						</div>
+						 <a href="//www.dvrpc.org" target="_new"><img class="dvrpclogo" style="margin:0px 0px 0px 0px" src="img/dvrpclogo.png" /></a>
+                    </div>
+</div>
+                </div>
+         
+            </div> 
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+    <!-- End About -->
+
+    <div class="modal fade" id="LegendModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="overflow:hidden">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">
+                        Category description and scoring
+                    </h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <ul id="legendTabs" class="nav nav-tabs nav-stacked nav-left">
+                                <li class="active">
+                                    <a href="#RideScoreTab" data-toggle="tab" data-bg="#3C3C3C">
+                                     &nbsp;RideScore</a>
+                                </li>
+                                <li>
+                                    <a href="#TransitTab" data-toggle="tab" data-bg="#991f31">
+                                        &nbsp;Transit</a>
+                                </li>
+                                <li>
+                                    <a href="#ConnectTab" data-toggle="tab" data-bg="#60afa1">
+                                   &nbsp;Connectivity Score</a>
+                                </li>
+                                <li>
+                                    <a href="#CCTab" data-toggle="tab" data-bg="#a6c834">
+                                    &nbsp;Cultural</a>
+                                </li>
+                                <li>
+                                    <a href="#ctnTab" data-toggle="tab" data-bg="#006886">
+                                    &nbsp;Circuit Proximity</a>
+                                </li>
+                                <li>
+                                    <a href="#ODTab" data-toggle="tab" data-bg="#3b8448">
+                                       &nbsp;Outdoor Destinations</a>
+                                </li>
+                                <li>
+                                    <a href="#WalkTab" data-toggle="tab" data-bg="#db182e">
+                                  &nbsp;Retail District</a>
+                                </li>
+                                <li>
+                                    <a href="#BikeTab" data-toggle="tab" data-bg="#e38225">
+                              &nbsp;Near Bicycle Facilities</a>
+                                </li>
+                                <li>
+                                    <a href="#POPTab" data-toggle="tab" data-bg="#eed714">
+                                     &nbsp;Population</a>
+                                </li>
+                                <li>
+                                    <a href="#EMPTab" data-toggle="tab" data-bg="#9ab9a8">
+                                      &nbsp;Employees</a>
+                                </li>
+                                <li>
+                                    <a href="#BoardTab" data-toggle="tab" data-bg="#5d558b">
+                                       <!--  <i class="icon-info-sign"></i> -->&nbsp;Non-Parking Boards</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-xs-8">
+                            <div id="legendTabsContent" class="tab-content">
+                                <div class="tab-pane fade active in" id="RideScoreTab">
+                                                 <h4 class="modal-title" style="color:black">RideScore</h4>
+                                      <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/ridescoreG.png" />
+                    <p>The sum of values for each station characteristic converted to a 1 to 10 scale.</p>
+
+                    <p>
+                        <font style="color:grey;">Source: DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="TransitTab">
+                           <h4 class="modal-title" style="color:black">Transit Vehicle Volumes</h4>
+                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/tv.png" />
+                    <p>Transit Vehicle Volumes are the number of buses and individual trains that serve the area at or around each station per day. The larger the volume of transit vehicles, the more connected a place is, as it's the concentrations of transit vehicles - both rail and bus - that create options for commuters to access destinations via public transit. Each station is scored based on how many transit vehicles pass within 500 feet of the station in a twenty-four hour time period.</p>
+                    <p><b>Scoring</b> <i>(vehicles within 24 hours) </i> </p>
+                    <ul>
+                        <li>High (5) = 270 - 3,011</li>
+                        <li>Medium-High (4) = 195 - 269</li>
+                        <li>Medium (3) = 135 - 194</li>
+                        <li>Low-Medium (2) =  75 - 134</li>
+                        <li>Low (1) = 32 - 74</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Source: DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="ConnectTab">
+                                    <h4 class="modal-title" style="color:black">Connectivity Score</h4>
+                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/cs.png" />
+                    <p>A Connectivity Score is a rating of the
+                        <i>connectivity</i> of a place's street network that can be used to determine a community’s walkability. Connectivity scores for stations are based on the intersection density within 1/2-mile of the station.</p>
+                
+                    <p><b>Scoring</b> <i>(intersection density within 1/2-mile of station) </i> </p>
+                    <ul>
+                        <li>High (5)= 0.23 - 0.50 </li>
+                        <li>Medium-High (4) = 0.18 - 0.22 </li>
+                        <li>Medium (3) = 0.15 - 0.17 </li>
+                        <li>Low-Medium (2) = 0.11 - 0.14</li>
+                        <li>Low (1) = 0.01 - 0.10</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Source: DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="CCTab">
+                                      <h4 class="modal-title" style="color:black">Civic and Cultural Attractors</h4>
+                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/ca.png" />
+
+                    <p>This station characteristic aggregates the number of civic and cultural resources within 1/2 mile of the station. Civic and cultural resources aggregated include: schools, libraries, museums, art galleries, US Post Offices, colleges, botanical gardens, zoos and municipal buildings (excluding maintenance facilities).</p>
+          
+                    <p><b>Scoring</b> <i>(number of resources) </i> </p>
+                    <ul>
+                        <li>High (5) = 21 - 49</li>
+                        <li>Medium-High (4) = 14 - 20</li>
+                        <li>Medium (3) = 10 - 13</li>
+                        <li>Low-Medium (2) = 6 - 9</li>
+                        <li>Low (1) = 1 - 5 </li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Sources: NETS database, National Center for Education Statistics (NCES), DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="ctnTab">
+                                           <h4>Station Proximity to Circuit Trail Network</h4>
+                                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/station.png" />
+
+                    <p>This station characteristic assesses how close a transit station is to the Delaware Valley's existing and planned network of 750 miles of walking and biking trails aimed at connecting the region to communities, jobs, and parks. 
+					Sections of the network are at various stages of the design and construction process. Programmed sections, those sections that have secured funding or are under construction, and existing sections,
+					those sections that have been built and are open to the public, have the greatest effect on our communities and the way we travel and recreate today.</p>
+
+                   <p><b>Scoring</b></p>
+                    <ul>
+                        <li>High (5) = On/Adjacent</li>
+                        <li>Medium-High (4) = <=1/2 mile</li>
+                        <li>Medium (3) = 1/2 mile - 1 mile</li>
+                        <li>Low (1) = > 1 mile</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Source: DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="ODTab">
+                                            <h4>Outdoor Bicycle Destinations</h4>
+                                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/outdoor.png" />
+
+                    <p>Transit stations have been evaluated for their proximity to outdoor destinations in the Delaware Valley that may be a draw to cyclists. These destinations include, among others, federal, state, and county parks (greater than 10 acres), arboretums, and cemeteries. Scores measure a station's proximity to these recreational bicycle destinations.</p>
+
+                    <p><b>Scoring</b></p>
+                    <ul>
+                        <li>High (5) = < 1/4 - mile </li>
+                                <li>Medium-High (4) = 1/4 - 1/2 mile</li>
+                                <li>Medium (3) = 1/2 - 1 mile</li>
+                                <li>Low-Medium (2) = 1 - 2 miles</li>
+                                <li>Low (1) = > 2 miles</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Sources: DVRPC, with feedback from the Bicycle Coalition of Greater Philadelphia.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="WalkTab">
+                                            <h4>Stations Located Near a Walkable Retail District</h4>
+                                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/ST_RD.png" />
+                    <p>This measure evaluates a transit station’s proximity to a concentration of retail uses that have safe pedestrian facilities. In Philadelphia County, the Philadelphia Planning Commission has identified "Walkable Commercial Corridors" - specific portions of corridors that are both comfortable for a pedestrian and have a retail focus. Within the surrounding counties, DVRPC has identified "Centers" - places with a unique sense of place, existing infrastructure, and opportunities for development. Taken together, these corridors and places make up some of the region's most notable destinations.</p>
+                    <p><b>Scoring</b></p>
+                    <ul>
+                        <li>High (5) = &lt; 1/4 - mile</li>
+                        <li>Medium-High (4) = 1/4 - 1/2 mile</li>
+                        <li>Medium (3) = 1/2 - 1 mile</li>
+                        <li>Low-Medium (2) = 1 - 2 miles</li>
+                        <li>Low (1) = > 2 miles</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Source: DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="BikeTab">
+                                            <h4>Stations near On-road Bicycle Facilities</h4>
+                                  <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/onroadbike.png" />
+                    <p>Transit stations have been evaluated for their proximity to on-road bicycle facilities, facilities where cyclists and vehicles share the right-of-way with no physical barriers between them. Examples of on-road facilities are designated bicycle route signage, travel lanes with painted sharrows, and striped bicycle lanes. Stations have been rated based on being located on, or within 1/4-mile of an on-road facility.</p>
+                     <p><b>Scoring</b></p>
+                    <ul>
+                        <li>Yes (5) = Station within 1/4-mile of on-road bicycle facility</li>
+						<li>No (0) = Station further than 1/4-mile of on-road bicycle facility</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Sources: Philadelphia Streets Department, DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="POPTab">
+                                          <h4>Population Density</h4>
+                                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/popden.png" />
+                    <p>Transit stations are rated on the concentration of residents - potential transit customers and origins for transit - within 1-mile of the station. Greater population densities within station areas increase the potential for a transit customer base.</p>
+                    <p><b>Scoring</b> <i>(persons within 1-mile of the station) </i> </p>
+                    <ul>
+                        <li>High (5) = 10,259 – 22,500</li>
+                        <li>Medium-High (4) = 6,091 – 10,258</li>
+                        <li>Medium (3) =4,395 – 6,090</li>
+                        <li>Low-Medium (2) = 2,805 – 4,394</li>
+                        <li>Low (1) = 146 – 2,804</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Sources: U.S. Census Bureau, DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="EMPTab">
+                                    <h4>Employees</h4>
+                                       <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/emp.png" />
+                    <p>This station characteristic measures the number of known employees, as identified in National Establishment Time-Series (NETS) data, within 1-mile of the station. Employees located near transit may be more likely 
+					to use transit; with incentives like proximity, lack of parking, and quality sidewalk and trail connections, that likelihood could increase as the density of employees increases near the station.<br>
+				<!--	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The catchment area for employees was calculated using a 1/2-mile buffer (versus a 1-mile buffer for population density) because research shows that transit users tend to prefer a shorter trip from transit to their final destination (i.e. their place of employment) than from home to transit.
+					-->
+					</p>
+
+                    <p><b>Scoring</b> <i>(employees within 1-mile of station) </i> </p>
+                    <ul>
+                        <li>High (5) = 11,762 – 83,767</li>
+                        <li>Medium-High (4) = 8,864 – 11,761</li>
+                        <li>Medium (3) = 6,683 – 8,863</li>
+                        <li>Low-Medium (2) = 4,879 – 6,682</li>
+                        <li>Low (1) = 511 - 4,878</li>
+                    </ul>
+                    <p>
+                        <font style="color:grey;">Sources: NETS database, DVRPC.</font>
+                    </p>
+                                </div>
+                                <div class="tab-pane fade" id="BoardTab">
+                                          <h4>Non-Parking Passenger Boards</h4>
+                                    <img class="infologo" style="float:left;margin:0px 10px 0px 0px" src="img/pass.png" />
+                                    <p>Transit stations are evaluated for the number of vehicles parked at the station as a percentage of the number of passengers that board trains. 
+									This difference between passenger boards and the number of parked cars can be used as an approximation of the number of passengers who access the station via walking, bicycling or getting dropped off by someone else. 
+									Stations have been rated based on the percentage of non-parking passengers.</p>
+
+                                     <p><b>Scoring</b> <i>(percent of non-parking passengers) </i> </p>
+                                    <ul>
+                                        <li>High (5) = 94.5% - 100%</li>
+                                        <li>Medium-High (4) = 76.83% - 94.49%</li>
+                                        <li>Medium (3) = 63.59% - 76.82%</li>
+                                        <li>Low-Medium (2) = 49.37% - 63.58%</li>
+                                        <li>Low (1) = 0% - 49.36%</li>
+                                    </ul>
+                                    <p>
+                                        <font style="color:grey;">Sources: SEPTA, DVRPC.</font>
+                                    </p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+	 <div class="modal fade" id="LegendModal2">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color:black">&times;</button>
+                    <h4 class="modal-title">Map Legend</h4>
+                </div>
+                <div class="modal-body">
+                         <span>
+						 <img class="dvrpclogo" style="margin:0px 0px 0px 0px" src="img/legend.png" />
+				         <img class="dvrpclogo" style="margin:0px 0px 0px 20px" src="img/mapL.png" />
+						 </span>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+        <script>var _gaq=[['_setAccount','UA-9825778-1'],['_trackPageview']];(function(d){var g=d.createElement('script'),s=d.scripts[0];g.src='//www.google-analytics.com/ga.js';s.parentNode.insertBefore(g,s)}(document))</script>
+ 
+</body>
+
+</html>
