@@ -4,7 +4,7 @@ RideScore is an on-line database that assesses the physical and demographic char
 
 To assess this relationship, DVRPC staff collected data on various station area characteristics that are likely to be factors in the transit-bicycle connection. The sum of those factors is calculated to give each station a total RideScore. Together, these individual factors, and a station's total RideScore, will give transit agencies, trail advocacy groups and municipalities a picture of the station area characteristics that contribute to demand for bicycle facilities and amenities. Ultimately, RideScore may help communities identify and prioritize improvements designed to strengthen bicycle and transit connectivity.
 
-The live application is available at [https://crvanpollard.github.io/RideScore/index.htm](https://crvanpollard.github.io/RideScore/index.htm)
+Application is available at [https://dvrpc.github.io/RideScore/index.htm](https://dvrpc.github.io/RideScore/index.htm)
 
 ## JS library dependencies
 
